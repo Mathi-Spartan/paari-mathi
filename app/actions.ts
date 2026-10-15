@@ -56,6 +56,8 @@ export type SaveInput = {
   sealed: boolean;
   opensOn: string | null;
   memoryDate: string;
+  durationSeconds?: number | null;
+  activity?: string | null;
 };
 
 export async function saveMemory(input: SaveInput): Promise<{ ok: boolean; id?: string; day?: number; error?: string }> {
@@ -63,13 +65,14 @@ export async function saveMemory(input: SaveInput): Promise<{ ok: boolean; id?: 
   const kind = KINDS.some((k) => k.id === input.kind) ? input.kind : 'moment';
   const body = (input.body ?? '').trim().slice(0, 20000);
   const photo = input.photo && /^data:image\/(jpeg|png|webp);base64,/.test(input.photo) && input.photo.length < 7_500_000 ? input.photo : null;
-  if (!body && !photo) return { ok: false, error: 'Write something or add a photo' };
+  const dur = Number.isFinite(input.durationSeconds) && (input.durationSeconds ?? 0) > 0 ? Math.min(86400, Math.round(input.durationSeconds!)) : null;
+  if (!body && !photo && !dur) return { ok: false, error: 'Write something or add a photo' };
   const date = /^\d{4}-\d{2}-\d{2}$/.test(input.memoryDate) && input.memoryDate <= todayISO() ? input.memoryDate : todayISO();
   const opensOn = input.sealed && input.opensOn && /^\d{4}-\d{2}-\d{2}$/.test(input.opensOn) ? input.opensOn : null;
   const [row] = await q<{ id: string }>(
-    `INSERT INTO memories (kind, body, photo, feeling, sealed, opens_on, memory_date)
-     VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-    [kind, body, photo, input.feeling || null, !!opensOn, opensOn, date]
+    `INSERT INTO memories (kind, body, photo, feeling, sealed, opens_on, memory_date, duration_seconds, activity)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+    [kind, body, photo, input.feeling || null, !!opensOn, opensOn, date, dur, input.activity?.slice(0, 40) || null]
   );
   const [d] = await q<{ days: number }>(`SELECT count(DISTINCT memory_date)::int AS days FROM memories`);
   revalidatePath('/', 'layout');
@@ -83,8 +86,15 @@ export async function deleteMemory(id: string) {
   redirect('/');
 }
 
-export async function saveSettings(paariBirth: string | null) {
+export async function saveSettings(paariBirth: string | null, readingDay?: string | null) {
   await requireSession();
+  if (readingDay === undefined) {
+    // leave the reading day as it is
+  } else if (readingDay && /^\d{4}-\d{2}-\d{2}$/.test(readingDay)) {
+    await q(`INSERT INTO settings (key, value) VALUES ('reading_day', $1) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`, [readingDay]);
+  } else {
+    await q(`DELETE FROM settings WHERE key = 'reading_day'`);
+  }
   if (paariBirth && /^\d{4}-\d{2}-\d{2}$/.test(paariBirth)) {
     await q(`INSERT INTO settings (key, value) VALUES ('paari_birth', $1) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`, [paariBirth]);
   } else {

@@ -6,7 +6,8 @@ import { motion, AnimatePresence, type PanInfo } from 'motion/react';
 import { Icon } from '@/components/Icon';
 import { Lights } from '@/components/Lights';
 import { KindChip } from '@/components/MemoryCard';
-import { FEELINGS } from '@/lib/kinds';
+import { FEELINGS, formatDuration } from '@/lib/kinds';
+import { AnalogClock, timeLabel } from '@/components/Clocks';
 import type { describeDate } from '@/lib/dates';
 import { dur, ease, spring } from '@/lib/motion';
 
@@ -15,7 +16,7 @@ export type BookPage = {
   number: number;
   date: ReturnType<typeof describeDate>;
   age: { ta: string; en: string } | null;
-  memories: { id: string; kind: string; body: string; has_photo: boolean; locked: boolean; opens_on: string | null; feeling: string | null }[];
+  memories: { id: string; kind: string; body: string; has_photo: boolean; locked: boolean; opens_on: string | null; feeling: string | null; created_at: string; duration_seconds: number | null }[];
 };
 
 const turn = {
@@ -57,7 +58,7 @@ export function BookReader({ pages, since }: { pages: BookPage[]; since: ReturnT
         <span className="chip" style={{ background: 'var(--paper-2)', color: 'var(--ink-2)' }}>{index === 0 ? 'Cover' : `பக்கம் ${index} / ${pages.length}`}</span>
       </header>
 
-      <div className="book-stage" style={{ minHeight: '66dvh' }}>
+      <div className="book-stage" style={{ marginBottom: 14, marginRight: 12 }}>
         <div className="page-edge two" /><div className="page-edge" />
         <AnimatePresence custom={dir} mode="popLayout" initial={false}>
           <motion.article key={index} custom={dir} variants={turn} initial="enter" animate="center" exit="exit"
@@ -124,7 +125,11 @@ function DayPage({ page }: { page: BookPage }) {
         const feeling = FEELINGS.find((f) => f.id === m.feeling);
         return (
           <motion.div key={m.id} className="stack gap-3" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 + i * 0.12, duration: dur.slow, ease: ease.out }}>
-            <div className="row gap-2"><KindChip kind={m.kind} />{feeling && <span className="chip" style={{ background: 'var(--paper-2)', color: 'var(--ink-2)' }}>{feeling.ta}</span>}</div>
+            <div className="row gap-2" style={{ flexWrap: 'wrap' }}>
+              <span className="row gap-1" style={{ fontSize: 12.5, fontWeight: 700 }}><AnalogClock size={18} at={m.created_at} /> {timeLabel(m.created_at)}</span>
+              <KindChip kind={m.kind} />{feeling && <span className="chip" style={{ background: 'var(--paper-2)', color: 'var(--ink-2)' }}>{feeling.ta}</span>}
+              {m.duration_seconds ? <span className="chip" style={{ background: 'var(--k-together-soft)', color: 'var(--k-together)' }}>{formatDuration(m.duration_seconds).ta}</span> : null}
+            </div>
             {m.locked ? (
               <div className="row gap-3" style={{ padding: 16, borderRadius: 'var(--r-md)', background: 'var(--ink)', color: '#fff' }}>
                 <Icon name="lock" size={20} />

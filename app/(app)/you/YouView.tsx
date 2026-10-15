@@ -7,8 +7,9 @@ import { Lights } from '@/components/Lights';
 import { lockNow, saveSettings } from '@/app/actions';
 import { rise, spring } from '@/lib/motion';
 
-export function YouView({ paariBirth, stats }: { paariBirth: string | null; stats: { total: number; days: number; photos: number; first: string | null } }) {
+export function YouView({ paariBirth, readingDay, stats }: { paariBirth: string | null; readingDay: string | null; stats: { total: number; days: number; photos: number; first: string | null } }) {
   const [birth, setBirth] = useState(paariBirth ?? '');
+  const [reading, setReading] = useState(readingDay ?? '');
   const [saved, setSaved] = useState(false);
   const [pending, start] = useTransition();
 
@@ -33,7 +34,10 @@ export function YouView({ paariBirth, stats }: { paariBirth: string | null; stat
         </div>
         <label className="field-label" htmlFor="birth">Paari’s birthday</label>
         <input id="birth" type="date" className="input" value={birth} onChange={(e) => { setBirth(e.target.value); setSaved(false); }} />
-        <button className="btn btn-ink" disabled={pending} onClick={() => start(async () => { await saveSettings(birth || null); setSaved(true); })}>
+        <label className="field-label" htmlFor="reading">பாரி படிக்கும் நாள் · The day Paari reads this journal</label>
+        <input id="reading" type="date" className="input" value={reading} onChange={(e) => { setReading(e.target.value); setSaved(false); }} />
+        <span className="muted" style={{ fontSize: 12.5, marginTop: -6 }}>Leave empty to use his 18th birthday.</span>
+        <button className="btn btn-ink" disabled={pending} onClick={() => start(async () => { await saveSettings(birth || null, reading || null); setSaved(true); })}>
           <AnimatePresence mode="wait">
             {saved ? (
               <motion.span key="ok" className="row gap-2" initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={spring.bouncy}><Icon name="check" size={18} stroke={2.6} /> சேமிக்கப்பட்டது</motion.span>

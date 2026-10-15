@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import { saveMemory } from '../actions';
 import { Icon, type IconName } from '@/components/Icon';
-import { FEELINGS, KINDS, kindOf } from '@/lib/kinds';
+import { ACTIVITIES, FEELINGS, KINDS, formatDuration, kindOf } from '@/lib/kinds';
+import { AnalogClock, LiveTime } from '@/components/Clocks';
 import { addYears, describeDate } from '@/lib/dates';
 import { dur, ease, spring } from '@/lib/motion';
 
@@ -21,7 +22,7 @@ async function compress(file: File): Promise<string> {
   return canvas.toDataURL('image/jpeg', 0.82);
 }
 
-export function Composer({ today, initialKind, openPhoto, paariBirth }: { today: string; initialKind: string; openPhoto: boolean; paariBirth: string | null }) {
+export function Composer({ today, initialKind, openPhoto, paariBirth, duration, activity }: { today: string; initialKind: string; openPhoto: boolean; paariBirth: string | null; duration: number | null; activity: string | null }) {
   const router = useRouter();
   const [kind, setKind] = useState(kindOf(initialKind).id);
   const [body, setBody] = useState('');
@@ -41,6 +42,9 @@ export function Composer({ today, initialKind, openPhoto, paariBirth }: { today:
 
   useEffect(() => { if (openPhoto) setTimeout(() => fileRef.current?.click(), 400); }, [openPhoto]);
   useEffect(() => {
+    document.querySelector(`[data-kind="${kind}"]`)?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }, [kind]);
+  useEffect(() => {
     const t = textRef.current; if (!t) return;
     t.style.height = 'auto'; t.style.height = `${Math.max(220, t.scrollHeight)}px`;
   }, [body]);
@@ -56,13 +60,15 @@ export function Composer({ today, initialKind, openPhoto, paariBirth }: { today:
     setBusyPhoto(false);
   };
 
-  const canSave = (body.trim().length > 0 || !!photo) && phase === 'edit' && !(isLetter && sealed && !opensOn);
+  const act = ACTIVITIES.find((a) => a.id === activity);
+  const timed = kind === 'together' && !!duration;
+  const canSave = (body.trim().length > 0 || !!photo || timed) && phase === 'edit' && !(isLetter && sealed && !opensOn);
 
   const save = async () => {
     if (!canSave) return;
     setPhase('saving'); setError(null);
     const started = Date.now();
-    const r = await saveMemory({ kind, body, photo, feeling, sealed: isLetter && sealed, opensOn: isLetter && sealed ? opensOn : null, memoryDate: date });
+    const r = await saveMemory({ kind, body, photo, feeling, sealed: isLetter && sealed, opensOn: isLetter && sealed ? opensOn : null, memoryDate: date, durationSeconds: timed ? duration : null, activity: timed ? activity : null });
     if (!r.ok) { setPhase('error'); setError(r.error ?? 'Could not save'); setTimeout(() => setPhase('edit'), 50); return; }
     const wait = Math.max(0, 1300 - (Date.now() - started));
     setTimeout(() => router.push(`/?saved=1&day=${r.day ?? ''}`), wait);
@@ -86,6 +92,10 @@ export function Composer({ today, initialKind, openPhoto, paariBirth }: { today:
         {/* top bar */}
         <div className="row between">
           <Link href="/" className="icon-btn" aria-label="Close"><Icon name="close" size={18} stroke={2.2} /></Link>
+          <span className="row gap-2" aria-label="Current time">
+            <AnalogClock size={30} live showSeconds={false} />
+            <LiveTime size={17} />
+          </span>
           <label className="row gap-2 chip" style={{ background: 'var(--surface)', border: '1px solid var(--line)', height: 40, padding: '0 14px', position: 'relative', fontSize: 13.5, cursor: 'pointer' }}>
             <Icon name="calendar" size={16} />
             {date === today ? 'இன்று' : `${d.day} ${d.monthTa} ${d.year}`}
@@ -99,7 +109,7 @@ export function Composer({ today, initialKind, openPhoto, paariBirth }: { today:
           {KINDS.map((x) => {
             const on = x.id === kind;
             return (
-              <button key={x.id} type="button" role="radio" aria-checked={on} onClick={() => setKind(x.id)}
+              <button key={x.id} data-kind={x.id} type="button" role="radio" aria-checked={on} onClick={() => setKind(x.id)}
                 className="row gap-2" style={{ position: 'relative', height: 44, padding: '0 16px', borderRadius: 'var(--r-pill)', border: on ? 0 : '1px solid var(--line)', background: on ? 'transparent' : 'var(--surface)', color: on ? '#fff' : 'var(--ink)', fontWeight: 600, fontSize: 14, zIndex: 0 }}>
                 {on && <motion.span layoutId="kind-pill" transition={spring.snappy} style={{ position: 'absolute', inset: 0, borderRadius: 'var(--r-pill)', background: x.color, zIndex: -1, boxShadow: `0 12px 24px -12px ${x.color}` }} />}
                 <Icon name={x.id as IconName} size={17} />
@@ -117,6 +127,17 @@ export function Composer({ today, initialKind, openPhoto, paariBirth }: { today:
             <p className="en-italic" style={{ margin: 0 }}>{k.promptEn}</p>
           </motion.div>
         </AnimatePresence>
+
+        {timed && duration && (
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={spring.bouncy}
+            className="row gap-3" style={{ padding: '14px 16px', borderRadius: 'var(--r-lg)', background: 'var(--k-together-soft)', color: 'var(--k-together)' }}>
+            <motion.span animate={{ rotate: 360 }} transition={{ duration: 6, repeat: Infinity, ease: 'linear' }} style={{ display: 'flex' }}><Icon name="timer" size={26} /></motion.span>
+            <span className="stack" style={{ lineHeight: 1.3 }}>
+              <span style={{ fontWeight: 700, fontSize: 17 }}>{formatDuration(duration).ta} ஒன்றாக</span>
+              <span style={{ fontSize: 13 }}>{act ? `${act.ta} · ${act.en}` : 'Time together'} — saved with this page</span>
+            </span>
+          </motion.div>
+        )}
 
         {/* photo */}
         <AnimatePresence initial={false}>

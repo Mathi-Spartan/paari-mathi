@@ -1,4 +1,4 @@
-export type KindId = 'moment' | 'noticed' | 'milestone' | 'proud' | 'letter';
+export type KindId = 'moment' | 'noticed' | 'milestone' | 'proud' | 'together' | 'letter';
 
 export type Kind = {
   id: KindId;
@@ -34,6 +34,11 @@ export const KINDS: Kind[] = [
     placeholder: 'கூட்டத்திலும் பயப்படாமல் என் கையைப் பிடித்து நடந்தான்…',
   },
   {
+    id: 'together', ta: 'நம் நேரம்', en: 'Time together', color: 'var(--k-together)', soft: 'var(--k-together-soft)',
+    promptTa: 'இந்த நேரத்தில் நீங்கள் இருவரும் என்ன செய்தீர்கள்?', promptEn: 'What did the two of you do in this time?',
+    placeholder: 'ஊஞ்சலில் அவன் சிரித்துக்கொண்டே இருந்தான். நான் எண்ணிக்கொண்டே தள்ளினேன்…',
+  },
+  {
     id: 'letter', ta: 'கடிதம்', en: 'A letter to him', color: 'var(--k-letter)', soft: 'var(--k-letter-soft)',
     promptTa: 'வளர்ந்த பாரிக்கு ஒரு கடிதம்.', promptEn: 'A letter for grown-up Paari to open one day.',
     placeholder: 'என் பாரிக்கு, நீ இதைப் படிக்கும் நாளில்…',
@@ -51,6 +56,21 @@ export const FEELINGS = [
   { id: 'hard', ta: 'கடினமான நாள்', en: 'A hard day' },
   { id: 'together', ta: 'நாம் இருவர்', en: 'Just us two' },
 ];
+
+export const ACTIVITIES = [
+  { id: 'play', ta: 'விளையாட்டு', en: 'Play' },
+  { id: 'read', ta: 'கதை / வாசிப்பு', en: 'Reading' },
+  { id: 'walk', ta: 'நடை', en: 'A walk' },
+  { id: 'therapy', ta: 'பயிற்சி', en: 'Therapy practice' },
+  { id: 'music', ta: 'இசை', en: 'Music' },
+  { id: 'quiet', ta: 'அமைதியாக அருகில்', en: 'Quietly together' },
+];
+
+export function formatDuration(sec: number) {
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60);
+  if (h) return { ta: `${h} மணி ${m} நிமிடம்`, en: `${h}h ${m}m` };
+  return { ta: `${Math.max(1, m)} நிமிடம்`, en: `${Math.max(1, m)} min` };
+}
 
 export const DAILY_PROMPTS = [
   { ta: 'இன்று பாரியின் கண்கள் எதைத் தேடின?', en: "What were Paari's eyes looking for today?" },

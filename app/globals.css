@@ -22,6 +22,7 @@
   --k-noticed: #2350E6;  --k-noticed-soft: #E9EEFF;
   --k-milestone: #0B8A5F; --k-milestone-soft: #E2F5EC;
   --k-proud: #B26A00;    --k-proud-soft: #FFF3DC;
+  --k-together: #0B7C8C; --k-together-soft: #DFF3F5;
   --k-letter: #131313;   --k-letter-soft: #EEECE8;
 
   --font-display: 'Instrument Serif', 'Noto Serif Tamil', Georgia, serif;
@@ -46,7 +47,7 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; overflow-x: clip; }
 body {
   margin: 0;
   background: var(--paper);
@@ -56,6 +57,7 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  overflow-x: clip;
 }
 a { color: inherit; text-decoration: none; }
 button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
@@ -130,8 +132,8 @@ img { display: block; max-width: 100%; }
 
 /* ─── nav ─── */
 .nav {
-  position: fixed; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%);
-  width: min(440px, calc(100% - 24px)); height: var(--nav-h); z-index: 50;
+  position: fixed; left: 12px; right: 12px; bottom: max(14px, env(safe-area-inset-bottom)); margin: 0 auto;
+  max-width: 440px; height: var(--nav-h); z-index: 50;
   display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center;
   background: rgba(255, 255, 255, .82); backdrop-filter: saturate(1.6) blur(18px); -webkit-backdrop-filter: saturate(1.6) blur(18px);
   border: 1px solid rgba(19, 19, 19, .06); border-radius: var(--r-pill); box-shadow: var(--shadow-2);
