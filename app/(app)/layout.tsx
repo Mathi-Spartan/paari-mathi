@@ -1,14 +1,14 @@
-import { Shell } from '@/components/Shell';
-import { allNotes, getSettings, toMeta } from '@/lib/notes';
+import { AppShell } from '@/components/AppShell';
+import { allDays } from '@/lib/notes';
 import { todayISO } from '@/lib/dates';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const [notes, settings] = await Promise.all([allNotes(), getSettings()]);
+  const days = await allDays();
   return (
-    <Shell notes={notes.map(toMeta)} today={todayISO()} birth={settings.paariBirth}>
+    <AppShell today={todayISO()} entries={days.map((d) => ({ date: d.date, excerpt: d.excerpt }))}>
       {children}
-    </Shell>
+    </AppShell>
   );
 }
