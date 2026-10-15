@@ -6,11 +6,13 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Calendar } from '@/components/Calendar';
 import { Icon } from '@/components/Icon';
 import { describeDate } from '@/lib/dates';
+import { MOMENTS, momentOf } from '@/lib/moments';
 import { ease, spring } from '@/lib/motion';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
-export function CalendarView({ today, written }: { today: string; written: string[] }) {
+export function CalendarView({ today, marks }: { today: string; marks: Record<string, string[]> }) {
+  const written = Object.keys(marks);
   const [year, setYear] = useState(Number(today.slice(0, 4)));
   const [dir, setDir] = useState(0);
   const set = new Set(written);
@@ -19,7 +21,7 @@ export function CalendarView({ today, written }: { today: string; written: strin
   return (
     <main className="cal-page">
       <section className="card" style={{ padding: 22 }}>
-        <Calendar today={today} selected={null} written={written} size="lg" id="cal-big" />
+        <Calendar today={today} selected={null} marks={marks} size="lg" id="cal-big" />
       </section>
 
       <section className="stack gap-3" style={{ marginTop: 26 }}>
@@ -27,9 +29,9 @@ export function CalendarView({ today, written }: { today: string; written: strin
           <div className="stack">
             <AnimatePresence mode="wait" initial={false}>
               <motion.span key={year} initial={{ opacity: 0, x: dir * 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: dir * -20 }} transition={{ duration: 0.25, ease: ease.out }}
-                style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 22 }}>{year}</motion.span>
+                style={{ fontFamily: 'var(--font-display)', fontSize: 34, lineHeight: 1 }}>{year}</motion.span>
             </AnimatePresence>
-            <span style={{ fontSize: 13, color: 'var(--muted)' }}>{inYear} நாட்கள் எழுதியது · days written this year</span>
+            <span style={{ fontSize: 13, color: 'var(--muted)' }}>{inYear} {inYear === 1 ? 'day' : 'days'} written this year</span>
           </div>
           <div className="row" style={{ gap: 2 }}>
             <button className="icon-btn" onClick={() => { setDir(-1); setYear(year - 1); }} aria-label="Previous year"><Icon name="back" size={17} stroke={2.2} /></button>
@@ -44,7 +46,7 @@ export function CalendarView({ today, written }: { today: string; written: strin
               const count = new Date(Date.UTC(year, mi + 1, 0)).getUTCDate();
               return (
                 <div key={mi} className="stack gap-2" style={{ padding: 12, borderRadius: 'var(--r-md)', border: '1px solid var(--line)' }}>
-                  <span style={{ fontSize: 13, fontWeight: 600 }}>{describeDate(`${year}-${pad(mi + 1)}-01`).monthTa}</span>
+                  <span style={{ fontSize: 13, fontWeight: 600 }}>{describeDate(`${year}-${pad(mi + 1)}-01`).monthEn}</span>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 3 }}>
                     {Array.from({ length: lead }).map((_, i) => <span key={`e${i}`} />)}
                     {Array.from({ length: count }, (_, di) => {
@@ -52,9 +54,9 @@ export function CalendarView({ today, written }: { today: string; written: strin
                       const has = set.has(iso), isToday = iso === today, future = iso > today;
                       const dot = (
                         <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ ...spring.snappy, delay: mi * 0.03 + di * 0.006 }}
-                          style={{ display: 'block', aspectRatio: '1', borderRadius: 3, background: has ? 'var(--appa)' : isToday ? 'var(--paari)' : future ? 'var(--paper-2)' : 'var(--line)' }} />
+                          style={{ display: 'block', aspectRatio: '1', borderRadius: 3, background: has ? (momentOf(marks[iso][0] ?? '')?.color ?? 'var(--appa)') : future ? 'var(--paper-2)' : 'var(--line)', boxShadow: isToday ? '0 0 0 1.5px var(--bg), 0 0 0 3px var(--ink)' : undefined }} />
                       );
-                      return future ? <span key={iso}>{dot}</span> : <Link key={iso} href={`/daily/${iso}`} title={describeDate(iso).longTa}>{dot}</Link>;
+                      return future ? <span key={iso}>{dot}</span> : <Link key={iso} href={`/daily/${iso}`} title={describeDate(iso).shortEn}>{dot}</Link>;
                     })}
                   </div>
                 </div>
@@ -62,6 +64,11 @@ export function CalendarView({ today, written }: { today: string; written: strin
             })}
           </motion.div>
         </AnimatePresence>
+        <div className="row" style={{ flexWrap: 'wrap', gap: 14, fontSize: 12.5, color: 'var(--muted)', paddingTop: 4 }}>
+          <span className="row gap-1"><span style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--appa)' }} />Written</span>
+          {MOMENTS.map((m) => <span key={m.id} className="row gap-1"><span style={{ width: 9, height: 9, borderRadius: 2, background: m.color }} />{m.en}</span>)}
+          <span className="row gap-1"><span style={{ width: 9, height: 9, borderRadius: 2, border: '2px solid var(--ink)' }} />Today</span>
+        </div>
       </section>
     </main>
   );

@@ -51,3 +51,15 @@ export function addYears(iso: string, n: number) {
   const { y, m, d } = parts(iso);
   return `${y + n}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 }
+
+/** "6 years, 2 months and 4 days old" — Paari's exact age on a date. */
+export function ageText(birthIso: string | null | undefined, onIso: string) {
+  if (!birthIso || onIso < birthIso) return null;
+  const b = parts(birthIso), o = parts(onIso);
+  let y = o.y - b.y, m = o.m - b.m, d = o.d - b.d;
+  if (d < 0) { m -= 1; d += new Date(Date.UTC(o.y, o.m - 1, 0)).getUTCDate(); }
+  if (m < 0) { y -= 1; m += 12; }
+  const bits = [y && `${y} ${y === 1 ? 'year' : 'years'}`, m && `${m} ${m === 1 ? 'month' : 'months'}`, d && `${d} ${d === 1 ? 'day' : 'days'}`].filter(Boolean) as string[];
+  if (!bits.length) return 'born today';
+  return `${bits.length > 1 ? `${bits.slice(0, -1).join(', ')} and ${bits[bits.length - 1]}` : bits[0]} old`;
+}
