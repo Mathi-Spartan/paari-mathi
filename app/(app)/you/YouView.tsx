@@ -14,7 +14,7 @@ export function YouView({ paariBirth, readingDay, stats }: { paariBirth: string 
   const [pending, start] = useTransition();
 
   return (
-    <main className="shell stack gap-8">
+    <main className="page stack gap-6" style={{ maxWidth: 640 }}>
       <motion.section initial="hidden" animate="show" variants={rise} className="stack gap-4" style={{ position: 'relative', borderRadius: 'var(--r-xl)', overflow: 'hidden', padding: 26, background: 'var(--surface)', border: '1px solid var(--line)', minHeight: 260 }}>
         <Lights />
         <div className="row gap-3" style={{ position: 'relative' }}>
@@ -23,7 +23,7 @@ export function YouView({ paariBirth, readingDay, stats }: { paariBirth: string 
         </div>
         <h1 className="display" style={{ position: 'relative', fontSize: 46, marginTop: 'auto' }}>Mathi <em>&amp;</em> Paari</h1>
         <p className="title-ta" style={{ position: 'relative', fontSize: 17, fontWeight: 500, color: 'var(--ink-2)' }}>
-          {stats.total ? `${stats.days} நாட்கள் · ${stats.total} நினைவுகள் · ${stats.photos} புகைப்படங்கள்` : 'புத்தகம் இன்னும் தொடங்கவில்லை'}
+          {stats.total ? `${stats.days} தினக்குறிப்புகள் · ${stats.total} குறிப்புகள்` : 'நாட்குறிப்பு இன்னும் தொடங்கவில்லை'}
         </p>
       </motion.section>
 

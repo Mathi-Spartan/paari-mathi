@@ -1,5 +1,8 @@
 # Paari & Appa — design notes
 
+The app is an Obsidian-style vault: a sidebar of folders (Daily notes, Moments, Firsts, Proud, Letters) and tags, a daily note for every date, markdown with [[links]] and #tags, backlinks, a quick switcher (Ctrl/Cmd K), a calendar, a graph view and a clocks page. Light theme only.
+
+
 A private book a father writes for his son, one day at a time. Years later, Paari opens it.
 
 ## Idea

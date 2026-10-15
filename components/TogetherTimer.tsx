@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import { Icon } from './Icon';
 import { Roll } from './Clocks';
 import { ACTIVITIES, formatDuration } from '@/lib/kinds';
+import { appendTogether } from '@/app/actions';
 import { spring } from '@/lib/motion';
 
 type T = { running: boolean; startedAt: number | null; banked: number; activity: string };
@@ -21,7 +21,6 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
 /** A stopwatch for time spent with Paari. It survives reloads, and stopping it opens a journal page with the time filled in. */
 export function TogetherTimer({ todaySeconds }: { todaySeconds: number }) {
-  const router = useRouter();
   const [t, setT] = useState<T>(EMPTY);
   const [now, setNow] = useState(0);
   useEffect(() => { setT(load()); setNow(Date.now()); }, []);
@@ -43,7 +42,8 @@ export function TogetherTimer({ todaySeconds }: { todaySeconds: number }) {
   const finish = () => {
     const secs = elapsed; const act = t.activity;
     update(EMPTY);
-    router.push(`/new?kind=together&duration=${Math.max(60, secs)}&activity=${act}`);
+    const a = ACTIVITIES.find((x) => x.id === act);
+    appendTogether(Math.max(60, secs) / 60, a ? a.ta : 'ஒன்றாக');
   };
   const started = elapsed > 0 || t.running;
   const today = formatDuration(todaySeconds);
@@ -103,7 +103,7 @@ export function TogetherTimer({ todaySeconds }: { todaySeconds: number }) {
           {started && (
             <motion.button initial={{ opacity: 0, scale: 0.6, width: 0 }} animate={{ opacity: 1, scale: 1, width: 'auto' }} exit={{ opacity: 0, scale: 0.6, width: 0 }} transition={spring.bouncy}
               onClick={finish} className="btn btn-ghost" style={{ minHeight: 56, whiteSpace: 'nowrap' }}>
-              <Icon name="check" size={18} stroke={2.4} /> எழுது
+              <Icon name="check" size={18} stroke={2.4} /> நாட்குறிப்பில் சேர்
             </motion.button>
           )}
         </AnimatePresence>
